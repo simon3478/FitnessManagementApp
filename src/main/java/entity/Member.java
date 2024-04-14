@@ -16,6 +16,20 @@ public class Member {
 
     private Integer trainerId;
 
+    public Member(String firstName, String lastName, int age, String email, String password, String city, int streetNo, String streetName, String fitnessGoalType, String fitnessGoalTarget) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.age = age;
+        this.email = email;
+        this.password = password;
+        this.city = city;
+        this.streetNo = streetNo;
+        this.streetName = streetName;
+
+        this.fitnessGoalType = fitnessGoalType;
+        this.fitnessGoalTarget = fitnessGoalTarget;
+    }
+
     public Integer getTrainerId() {
         return trainerId;
     }
@@ -25,7 +39,7 @@ public class Member {
     }
 
     // Constructor with all fields
-    public Member(String firstName, String lastName, int age, String email, String password, String city, int streetNo, String streetName, int membershipsubscriptionId, String fitnessGoalType, String fitnessGoalTarget) {
+    public Member(String firstName, String lastName, int age, String email, String password, String city, int streetNo, String streetName, Integer membershipsubscriptionId, String fitnessGoalType, String fitnessGoalTarget) {
 
         this.firstName = firstName;
         this.lastName = lastName;

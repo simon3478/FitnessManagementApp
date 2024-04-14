@@ -332,7 +332,7 @@ public class FitnessAppCLI {
         System.out.print("Enter street name: ");
         String streetName = scanner.nextLine();
 
-        // Ask for phone numbers
+        // Phone number collection
         System.out.print("How many phone numbers would you like to register? ");
         int numberOfPhones = scanner.nextInt();
         scanner.nextLine();  // consume newline
@@ -342,12 +342,32 @@ public class FitnessAppCLI {
             phoneNumbers.add(scanner.nextLine());
         }
 
-        // Select membership plan and determine dates
-        int membershipId = selectMembership();
         System.out.print("Enter membership start date (YYYY-MM-DD): ");
         LocalDate startDate = LocalDate.parse(scanner.nextLine());
         System.out.print("Enter membership end date (YYYY-MM-DD): ");
         LocalDate endDate = LocalDate.parse(scanner.nextLine());
+
+        // Select membership plan and determine dates
+        int membershipId = selectMembership();
+        if (membershipId <= 0) {
+            System.out.println("Failed to select a valid membership. Please try again.");
+            return;
+        }
+
+        MembershipSubscription subscription = new MembershipSubscription(membershipId, startDate, endDate);
+        boolean subscriptionAdded = membershipsubscriptionDAO.addMembershipSubscription(subscription);
+        if (!subscriptionAdded) {
+            System.out.println("Failed to create membership subscription.");
+            return;
+        }
+
+
+
+
+
+
+        // Assuming addMembershipSubscription correctly sets the ID in the subscription object
+        int subscriptionId = subscription.getMembershipSubscriptionId(); // Ensure this method is implemented
 
         // Collect additional user details for fitness goals
         System.out.print("Enter fitness goal type: ");
@@ -355,30 +375,11 @@ public class FitnessAppCLI {
         System.out.print("Enter fitness goal target: ");
         String fitnessGoalTarget = scanner.nextLine();
 
-        // Register the member without a subscription ID
-        Member newMember = new Member(firstName, lastName, age, email, password, city, streetNo, streetName, 0, fitnessGoalType, fitnessGoalTarget);
+        // Register the member with the subscription ID
+        Member newMember = new Member(firstName, lastName, age, email, password, city, streetNo, streetName, subscriptionId, fitnessGoalType, fitnessGoalTarget);
         int memberId = memberDAO.addMember(newMember);
-
         if (memberId == -1) {
             System.out.println("Registration failed. Please try again.");
-            return;
-        }
-
-        // Create the membership subscription using the new Member ID
-        MembershipSubscription subscription = new MembershipSubscription(membershipId, startDate, endDate);
-        boolean subscriptionAdded = membershipsubscriptionDAO.addMembershipSubscription(subscription);
-
-        if (!subscriptionAdded) {
-            System.out.println("Failed to create membership subscription.");
-            return;
-        }
-
-        // Update the member with the correct MembershipSubscriptionID
-        newMember.setMembershipsubscriptionId(subscription.getMembershipSubscriptionId());
-        boolean updateSuccess = memberDAO.updateMember(newMember);
-
-        if (!updateSuccess) {
-            System.out.println("Failed to update member with subscription ID.");
             return;
         }
 
@@ -1355,11 +1356,19 @@ public class FitnessAppCLI {
             System.out.println((i + 1) + ". Duration: " + m.getDuration() + " months, Rate: $" + m.getRate() + ", Description: " + m.getDescription());
         }
         System.out.print("Select a plan (1-" + memberships.size() + "): ");
-        int membershipChoice = scanner.nextInt() - 1;
-        scanner.nextLine(); // Consume the newline character
+        int membershipChoice = scanner.nextInt() - 1; // Adjust for 0-based index
+        scanner.nextLine(); // Consume newline character
 
         if (membershipChoice >= 0 && membershipChoice < memberships.size()) {
-            return memberships.get(membershipChoice).getMembershipId();
+            // Hypothetically, assuming there's a method in MembershipDAO to fetch by ID
+            Membership selectedMembership = MembershipDAO.getMembershipById(memberships.get(membershipChoice).getMembershipId());
+            if (selectedMembership != null) {
+                System.out.println("Selected Membership ID: " + selectedMembership.getMembershipId());
+                return selectedMembership.getMembershipId();
+            } else {
+                System.out.println("Failed to retrieve membership details.");
+                return -1;
+            }
         } else {
             System.out.println("Invalid membership selection. Please select a valid plan.");
             return selectMembership(); // Recursively prompt again for a valid selection
